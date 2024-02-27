@@ -1,5 +1,3 @@
-use std::iter::{Extend, IntoIterator};
-
 #[derive(Debug, Default)]
 pub struct AnyQueryResult {
     #[doc(hidden)]

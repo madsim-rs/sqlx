@@ -8,7 +8,7 @@ use crate::{Sqlite, SqliteColumn};
 use sqlx_core::Either;
 use std::convert::identity;
 
-pub(crate) fn describe(conn: &mut ConnectionState, query: &str) -> Result<Describe<Sqlite>, Error> {
+pub(crate) async fn describe(conn: &mut ConnectionState, query: &str) -> Result<Describe<Sqlite>, Error> {
     // describing a statement from SQLite can be involved
     // each SQLx statement is comprised of multiple SQL statements
 
@@ -38,7 +38,7 @@ pub(crate) fn describe(conn: &mut ConnectionState, query: &str) -> Result<Descri
         // to [column_decltype]
 
         // if explain.. fails, ignore the failure and we'll have no fallback
-        let (fallback, fallback_nullable) = match explain(conn, stmt.handle.sql()) {
+        let (fallback, fallback_nullable) = match explain(conn, stmt.handle.sql()).await {
             Ok(v) => v,
             Err(error) => {
                 tracing::debug!(%error, "describe: explain introspection failed");

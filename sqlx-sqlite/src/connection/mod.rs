@@ -301,7 +301,7 @@ impl Statements {
         }
     }
 
-    fn get(&mut self, query: &str, persistent: bool) -> Result<&mut VirtualStatement, Error> {
+    async fn get(&mut self, query: &str, persistent: bool) -> Result<&mut VirtualStatement, Error> {
         if !persistent || !self.cached.is_enabled() {
             return Ok(self.temp.insert(VirtualStatement::new(query, false)?));
         }
