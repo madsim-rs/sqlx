@@ -148,7 +148,7 @@ version = "1.12"
 # version = "0.2"
 package = "madsim-tokio"
 git = "https://github.com/madsim-rs/madsim.git"
-rev = "4094882"
+rev = "fb3dc13"
 features = ["time", "net", "sync", "fs", "io-util", "rt", "macros", "rt-multi-thread"]
 default-features = false
 
