@@ -183,7 +183,7 @@ impl EstablishParams {
         Ok(())
     }
 
-    pub(crate) fn establish(&self) -> Result<ConnectionState, Error> {
+    pub(crate) async fn establish(&self) -> Result<ConnectionState, Error> {
         let mut handle = null_mut();
 
         // <https://www.sqlite.org/c3ref/open.html>

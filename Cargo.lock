@@ -195,13 +195,13 @@ dependencies = [
 
 [[package]]
 name = "async-channel"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d37875bd9915b7d67c2f117ea2c30a0989874d0b2cb694fe25403c85763c0c9e"
+checksum = "f28243a43d821d11341ab73c80bed182dc015c514b951616cf79bd4af39af0c3"
 dependencies = [
  "concurrent-queue",
- "event-listener 3.1.0",
- "event-listener-strategy",
+ "event-listener 5.2.0",
+ "event-listener-strategy 0.5.0",
  "futures-core",
  "pin-project-lite",
 ]
@@ -271,7 +271,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "655b9c7fe787d3b25cc0f804a1a8401790f0c5bc395beb5a64dc77d8de079105"
 dependencies = [
  "event-listener 3.1.0",
- "event-listener-strategy",
+ "event-listener-strategy 0.3.0",
  "pin-project-lite",
 ]
 
@@ -576,7 +576,7 @@ version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a37913e8dc4ddcc604f0c6d3bf2887c995153af3611de9e23c352b44c1b9118"
 dependencies = [
- "async-channel 2.1.0",
+ "async-channel 2.2.0",
  "async-lock 3.1.1",
  "async-task",
  "fastrand 2.0.1",
@@ -1292,12 +1292,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "event-listener"
+version = "5.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b5fb89194fa3cad959b833185b3063ba881dbfc7030680b314250779fb4cc91"
+dependencies = [
+ "concurrent-queue",
+ "parking",
+ "pin-project-lite",
+]
+
+[[package]]
 name = "event-listener-strategy"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d96b852f1345da36d551b9473fa1e2b1eb5c5195585c6c018118bc92a8d91160"
 dependencies = [
  "event-listener 3.1.0",
+ "pin-project-lite",
+]
+
+[[package]]
+name = "event-listener-strategy"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "feedafcaa9b749175d5ac357452a9d41ea2911da598fde46ce1fe02c37751291"
+dependencies = [
+ "event-listener 5.2.0",
  "pin-project-lite",
 ]
 
@@ -1994,12 +2015,11 @@ dependencies = [
 
 [[package]]
 name = "madsim"
-version = "0.2.24"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c33a58965ecd687f1f0528c36dc9eece2b1cc4febfa420e6d0643030efaed368"
+version = "0.2.25"
+source = "git+https://github.com/madsim-rs/madsim.git?rev=fb3dc13#fb3dc132bc3a541df3bb64b05a44d538371fbc8c"
 dependencies = [
  "ahash 0.8.7",
- "async-channel 2.1.0",
+ "async-channel 2.2.0",
  "async-stream",
  "async-task",
  "bincode",
@@ -2026,8 +2046,7 @@ dependencies = [
 [[package]]
 name = "madsim-macros"
 version = "0.2.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3d248e97b1a48826a12c3828d921e8548e714394bf17274dd0a93910dc946e1"
+source = "git+https://github.com/madsim-rs/madsim.git?rev=fb3dc13#fb3dc132bc3a541df3bb64b05a44d538371fbc8c"
 dependencies = [
  "darling 0.14.4",
  "proc-macro2",
@@ -2038,8 +2057,7 @@ dependencies = [
 [[package]]
 name = "madsim-tokio"
 version = "0.2.24"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5611fd0eb96867dd03a9fd2494d4c1bb126f413519673195065b6ea011e8c68"
+source = "git+https://github.com/madsim-rs/madsim.git?rev=fb3dc13#fb3dc132bc3a541df3bb64b05a44d538371fbc8c"
 dependencies = [
  "madsim",
  "spin 0.9.8",
@@ -3371,12 +3389,12 @@ dependencies = [
  "filetime",
  "futures",
  "glob",
+ "madsim-tokio",
  "openssl",
  "promptly",
  "serde",
  "serde_json",
  "sqlx",
- "tokio",
  "url",
 ]
 
@@ -3431,7 +3449,6 @@ dependencies = [
  "sqlx",
  "thiserror",
  "time",
- "tokio",
  "tokio-stream",
  "tracing",
  "url",
@@ -3445,9 +3462,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "futures",
+ "madsim-tokio",
  "sqlx",
  "structopt",
- "tokio",
 ]
 
 [[package]]
@@ -3458,6 +3475,7 @@ dependencies = [
  "argon2",
  "axum",
  "dotenvy",
+ "madsim-tokio",
  "once_cell",
  "rand",
  "regex",
@@ -3467,7 +3485,6 @@ dependencies = [
  "sqlx",
  "thiserror",
  "time",
- "tokio",
  "tower",
  "tracing",
  "uuid",
@@ -3492,8 +3509,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dotenvy",
+ "madsim-tokio",
  "sqlx",
- "tokio",
 ]
 
 [[package]]
@@ -3503,11 +3520,11 @@ dependencies = [
  "anyhow",
  "dotenvy",
  "futures",
+ "madsim-tokio",
  "serde",
  "serde_json",
  "sqlx",
  "structopt",
- "tokio",
 ]
 
 [[package]]
@@ -3515,8 +3532,8 @@ name = "sqlx-example-postgres-listen"
 version = "0.1.0"
 dependencies = [
  "futures",
+ "madsim-tokio",
  "sqlx",
- "tokio",
 ]
 
 [[package]]
@@ -3527,10 +3544,10 @@ dependencies = [
  "async-trait",
  "dotenvy",
  "futures",
+ "madsim-tokio",
  "mockall",
  "sqlx",
  "structopt",
- "tokio",
 ]
 
 [[package]]
@@ -3540,9 +3557,9 @@ dependencies = [
  "anyhow",
  "dotenvy",
  "futures",
+ "madsim-tokio",
  "sqlx",
  "structopt",
- "tokio",
 ]
 
 [[package]]
@@ -3550,8 +3567,8 @@ name = "sqlx-example-postgres-transaction"
 version = "0.1.0"
 dependencies = [
  "futures",
+ "madsim-tokio",
  "sqlx",
- "tokio",
 ]
 
 [[package]]
@@ -3560,9 +3577,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "futures",
+ "madsim-tokio",
  "sqlx",
  "structopt",
- "tokio",
 ]
 
 [[package]]
@@ -3697,16 +3714,17 @@ dependencies = [
 name = "sqlx-sqlite"
 version = "0.7.3"
 dependencies = [
+ "async-channel 2.2.0",
  "atoi",
  "chrono",
  "flume",
  "futures-channel",
  "futures-core",
- "futures-executor",
  "futures-intrusive",
  "futures-util",
  "libsqlite3-sys",
  "log",
+ "madsim-tokio",
  "percent-encoding",
  "regex",
  "serde",
@@ -3727,8 +3745,8 @@ dependencies = [
  "async-std",
  "dotenvy",
  "env_logger",
+ "madsim-tokio",
  "sqlx",
- "tokio",
 ]
 
 [[package]]
@@ -3959,9 +3977,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.34.0"
+version = "1.36.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0c014766411e834f7af5b8f4cf46257aab4036ca95e9d2c144a10f59ad6f5b9"
+checksum = "61285f6515fa018fb2d1e46eb21223fff441ee8db5d0f1435e8ab4f5cdb80931"
 dependencies = [
  "backtrace",
  "bytes",
@@ -4054,7 +4072,7 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "winnow 0.6.2",
+ "winnow 0.6.5",
 ]
 
 [[package]]
@@ -4728,9 +4746,9 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "0.6.2"
+version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a4191c47f15cc3ec71fcb4913cb83d58def65dd3787610213c649283b5ce178"
+checksum = "dffa400e67ed5a4dd237983829e66475f0a4a26938c4b04c21baede6262215b8"
 dependencies = [
  "memchr",
 ]

@@ -332,7 +332,7 @@ fn opcode_to_type(op: &str) -> DataType {
     }
 }
 
-fn root_block_columns(
+async fn root_block_columns(
     conn: &mut ConnectionState,
 ) -> Result<HashMap<(i64, i64), IntMap<ColumnType>>, Error> {
     let table_block_columns: Vec<(i64, i64, i64, String, bool)> = execute::iter(
@@ -356,7 +356,7 @@ fn root_block_columns(
            WHERE s.type = 'index'",
         None,
         false,
-    )?
+    ).await?
     .filter_map(|res| res.map(|either| either.right()).transpose())
     .map(|row| FromRow::from_row(&row?))
     .collect::<Result<Vec<_>, Error>>()?;
@@ -424,13 +424,14 @@ impl BranchList {
 }
 
 // Opcode Reference: https://sqlite.org/opcode.html
-pub(super) fn explain(
+// TODO: async
+pub(super) async fn explain(
     conn: &mut ConnectionState,
     query: &str,
 ) -> Result<(Vec<SqliteTypeInfo>, Vec<Option<bool>>), Error> {
-    let root_block_cols = root_block_columns(conn)?;
+    let root_block_cols = root_block_columns(conn).await?;
     let program: Vec<(i64, String, i64, i64, i64, Vec<u8>)> =
-        execute::iter(conn, &format!("EXPLAIN {query}"), None, false)?
+        execute::iter(conn, &format!("EXPLAIN {}", query), None, false).await?
             .filter_map(|res| res.map(|either| either.right()).transpose())
             .map(|row| FromRow::from_row(&row?))
             .collect::<Result<Vec<_>, Error>>()?;
@@ -1367,14 +1368,15 @@ pub(super) fn explain(
     Ok((output, nullable))
 }
 
-#[test]
-fn test_root_block_columns_has_types() {
+#[tokio::test]
+async fn test_root_block_columns_has_types() {
     use crate::SqliteConnectOptions;
     use std::str::FromStr;
     let conn_options = SqliteConnectOptions::from_str("sqlite::memory:").unwrap();
     let mut conn = super::EstablishParams::from_options(&conn_options)
         .unwrap()
         .establish()
+        .await
         .unwrap();
 
     assert!(execute::iter(
@@ -1383,11 +1385,13 @@ fn test_root_block_columns_has_types() {
         None,
         false
     )
+    .await
     .unwrap()
     .next()
     .is_some());
     assert!(
         execute::iter(&mut conn, r"CREATE INDEX i1 on t (a,b_null);", None, false)
+            .await
             .unwrap()
             .next()
             .is_some()
@@ -1398,6 +1402,7 @@ fn test_root_block_columns_has_types() {
         None,
         false
     )
+    .await
     .unwrap()
     .next()
     .is_some());
@@ -1407,6 +1412,7 @@ fn test_root_block_columns_has_types() {
         None,
         false
     )
+    .await
     .unwrap()
     .next()
     .is_some());
@@ -1416,6 +1422,7 @@ fn test_root_block_columns_has_types() {
         None,
         false
     )
+    .await
     .unwrap()
     .next()
     .is_some());
@@ -1425,6 +1432,7 @@ fn test_root_block_columns_has_types() {
         None,
         false
     )
+    .await
     .unwrap()
     .next()
     .is_some());
@@ -1435,6 +1443,7 @@ fn test_root_block_columns_has_types() {
         None,
         false
     )
+    .await
     .unwrap()
     .next()
     .is_some());
@@ -1445,6 +1454,7 @@ fn test_root_block_columns_has_types() {
         None,
         false,
     )
+    .await
     .unwrap()
     .filter_map(|res| res.map(|either| either.right()).transpose())
     .map(|row| FromRow::from_row(row.as_ref().unwrap()))
@@ -1452,7 +1462,7 @@ fn test_root_block_columns_has_types() {
     .collect::<Result<HashMap<_, _>, Error>>()
     .unwrap();
 
-    let root_block_cols = root_block_columns(&mut conn).unwrap();
+    let root_block_cols = root_block_columns(&mut conn).await.unwrap();
 
     // there should be 7 tables/indexes created explicitly, plus 1 autoindex for t3
     assert_eq!(8, root_block_cols.len());

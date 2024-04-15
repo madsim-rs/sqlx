@@ -58,7 +58,7 @@ impl ConnectionHandle {
         unsafe { sqlite3_last_insert_rowid(self.as_ptr()) }
     }
 
-    pub(crate) fn exec(&mut self, query: impl Into<String>) -> Result<(), Error> {
+    pub(crate) async fn exec(&mut self, query: impl Into<String>) -> Result<(), Error> {
         let query = query.into();
         let query = CString::new(query).map_err(|_| err_protocol!("query contains nul bytes"))?;
 
