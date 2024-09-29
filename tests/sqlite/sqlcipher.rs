@@ -1,3 +1,5 @@
+#![cfg(sqlite_test_sqlcipher)]
+
 use std::str::FromStr;
 
 use sqlx::sqlite::SqliteQueryResult;
