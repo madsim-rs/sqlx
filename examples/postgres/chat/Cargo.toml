@@ -7,7 +7,7 @@ workspace = "../../../"
 [dependencies]
 sqlx = { path = "../../../", features = [ "postgres", "runtime-tokio-native-tls" ] }
 futures = "0.3.1"
-tokio = { version = "1.20.0", features = [ "rt-multi-thread", "macros" ] }
+tokio = { workspace = true, optional = true }
 tui = "0.19.0"
 crossterm = "0.25"
 unicode-width = "0.1"

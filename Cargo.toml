@@ -145,8 +145,9 @@ dotenvy = { version = "0.15.0", default-features = false }
 version = "1.12"
 
 [workspace.dependencies.tokio]
-version = "1"
-features = ["time", "net", "sync", "fs", "io-util", "rt"]
+version = "0.2.30"
+package = "madsim-tokio"
+features = ["time", "net", "sync", "fs", "io-util", "rt", "macros", "rt-multi-thread"]
 default-features = false
 
 [dependencies]
