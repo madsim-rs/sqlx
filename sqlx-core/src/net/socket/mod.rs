@@ -13,7 +13,7 @@ use crate::io::ReadBuf;
 
 mod buffered;
 
-pub trait Socket: Send + Sync + Unpin + 'static {
+pub trait Socket: Send + Unpin + 'static {
     fn try_read(&mut self, buf: &mut dyn ReadBuf) -> io::Result<usize>;
 
     fn try_write(&mut self, buf: &[u8]) -> io::Result<usize>;

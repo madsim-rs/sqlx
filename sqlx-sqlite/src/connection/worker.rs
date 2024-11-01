@@ -2,7 +2,6 @@ use std::borrow::Cow;
 use std::future::Future;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::thread;
 
 use futures_channel::oneshot;
 use futures_intrusive::sync::{Mutex, MutexGuard};
@@ -79,9 +78,7 @@ impl ConnectionWorker {
     pub(crate) async fn establish(params: EstablishParams) -> Result<Self, Error> {
         let (establish_tx, establish_rx) = oneshot::channel();
 
-        thread::Builder::new()
-            .name(params.thread_name.clone())
-            .spawn(move || {
+            tokio::spawn(async move {
                 let (command_tx, command_rx) = flume::bounded(params.command_channel_size);
 
                 let conn = match params.establish() {
@@ -116,10 +113,11 @@ impl ConnectionWorker {
                 // would rollback an already completed transaction.
                 let mut ignore_next_start_rollback = false;
 
-                for (cmd, span) in command_rx {
+                while let Ok((cmd, span)) = command_rx.recv_async().await {
                     let _guard = span.enter();
                     match cmd {
                         Command::Prepare { query, tx } => {
+                            // TODO(kwannoel): Make this async?
                             tx.send(prepare(&mut conn, &query).map(|prepared| {
                                 update_cached_statements_size(
                                     &conn,
@@ -130,6 +128,7 @@ impl ConnectionWorker {
                             .ok();
                         }
                         Command::Describe { query, tx } => {
+                            // TODO(kwannoel): Make this async?
                             tx.send(describe(&mut conn, &query)).ok();
                         }
                         Command::Execute {
@@ -143,7 +142,7 @@ impl ConnectionWorker {
                             {
                                 Ok(iter) => iter,
                                 Err(e) => {
-                                    tx.send(Err(e)).ok();
+                                    tx.send_async(Err(e)).await.ok();
                                     continue;
                                 }
                             };
@@ -151,7 +150,7 @@ impl ConnectionWorker {
                             match limit {
                                 None => {
                                     for res in iter {
-                                        if tx.send(res).is_err() {
+                                        if tx.send_async(res).await.is_err() {
                                             break;
                                         }
                                     }
@@ -166,12 +165,12 @@ impl ConnectionWorker {
                                                 rows_returned += 1;
                                                 if rows_returned >= limit {
                                                     drop(iter);
-                                                    let _ = tx.send(res);
+                                                    let _ = tx.send_async(res).await;
                                                     break;
                                                 }
                                             }
                                         }
-                                        if tx.send(res).is_err() {
+                                        if tx.send_async(res).await.is_err() {
                                             break;
                                         }
                                     }
@@ -190,7 +189,7 @@ impl ConnectionWorker {
                                     });
                             let res_ok = res.is_ok();
 
-                            if tx.blocking_send(res).is_err() && res_ok {
+                            if tx.send(res).await.is_err() && res_ok {
                                 // The BEGIN was processed but not acknowledged. This means no
                                 // `Transaction` was created and so there is no way to commit /
                                 // rollback this transaction. We need to roll it back
@@ -224,7 +223,7 @@ impl ConnectionWorker {
                             };
                             let res_ok = res.is_ok();
 
-                            if tx.blocking_send(res).is_err() && res_ok {
+                            if tx.send(res).await.is_err() && res_ok {
                                 // The COMMIT was processed but not acknowledged. This means that
                                 // the `Transaction` doesn't know it was committed and will try to
                                 // rollback on drop. We need to ignore that rollback.
@@ -252,7 +251,7 @@ impl ConnectionWorker {
                             let res_ok = res.is_ok();
 
                             if let Some(tx) = tx {
-                                if tx.blocking_send(res).is_err() && res_ok {
+                                if tx.send(res).await.is_err() && res_ok {
                                     // The ROLLBACK was processed but not acknowledged. This means
                                     // that the `Transaction` doesn't know it was rolled back and
                                     // will try to rollback again on drop. We need to ignore that
@@ -268,7 +267,7 @@ impl ConnectionWorker {
                         }
                         Command::UnlockDb => {
                             drop(conn);
-                            conn = futures_executor::block_on(shared.conn.lock());
+                            conn = shared.conn.lock().await;
                         }
                         Command::Ping { tx } => {
                             tx.send(()).ok();
@@ -283,7 +282,7 @@ impl ConnectionWorker {
                         }
                     }
                 }
-            })?;
+            });
 
         establish_rx.await.map_err(|_| Error::WorkerCrashed)?
     }
@@ -408,12 +407,13 @@ impl ConnectionWorker {
     pub(crate) fn shutdown(&mut self) -> impl Future<Output = Result<(), Error>> {
         let (tx, rx) = oneshot::channel();
 
-        let send_res = self
-            .command_tx
-            .send((Command::Shutdown { tx }, Span::current()))
-            .map_err(|_| Error::WorkerCrashed);
+        let command_tx = self.command_tx.clone();
 
         async move {
+            let send_res = command_tx
+                .send_async((Command::Shutdown { tx }, Span::current()))
+                .await
+                .map_err(|_| Error::WorkerCrashed);
             send_res?;
 
             // wait for the response
@@ -470,10 +470,6 @@ mod rendezvous_oneshot {
             let (ack_tx, ack_rx) = oneshot::channel();
             self.inner.send((value, ack_tx)).map_err(|_| Canceled)?;
             ack_rx.await
-        }
-
-        pub fn blocking_send(self, value: T) -> Result<(), Canceled> {
-            futures_executor::block_on(self.send(value))
         }
     }
 

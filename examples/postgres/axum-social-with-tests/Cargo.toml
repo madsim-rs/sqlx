@@ -9,7 +9,7 @@ edition = "2021"
 # Primary crates
 axum = { version = "0.5.13", features = ["macros"] }
 sqlx = { path = "../../../", features = [ "runtime-tokio", "tls-rustls-ring", "postgres", "time", "uuid" ] }
-tokio = { version = "1.20.1", features = ["rt-multi-thread", "macros"] }
+tokio = { workspace = true, optional = true }
 
 # Important secondary crates
 argon2 = "0.4.1"
